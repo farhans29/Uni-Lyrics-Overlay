@@ -48,7 +48,11 @@ This project uses **Vite**, **Electron**, and **pnpm**.
     ```bash
     pnpm install
     ```
-3.  **Set up your `.env` file**
+3.  **Build the project**
+    ```bash
+    pnpm run build
+    ```
+4.  **Set up your `.env` file**
 
     You need to configure your Spotify credentials for the Auto Mode:
     - Create a [Spotify Developer account](https://developer.spotify.com)
@@ -70,7 +74,7 @@ This project uses **Vite**, **Electron**, and **pnpm**.
     - Look for the request to `https://spclient.wg.spotify.com/color-lyrics/v2`.
     - In the `Request Headers`, find `Authorization: Bearer <token>`. Copy the token and paste it into `VITE_BEARER_TOKEN`.
 
-4.  **Start the app (Development)**
+5.  **Start the app (Development)**
     ```bash
     pnpm run start
     ```
@@ -85,9 +89,13 @@ You can compile this overlay into a standalone Windows `.exe` file!
 1. Make sure `electron-builder` is installed as a devDependency.
 2. Run the build command:
    ```bash
+   pnpm run build
+   ```
+3. Run the dist command:
+   ```bash
    pnpm run dist
    ```
-3. Your compiled executable will appear in the `dist-electron` folder!
+4. Your compiled executable will appear in the `dist-electron` folder!
 
 ---
 
