@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 
 import { useSpotifyAuth } from "./hooks/useSpotifyAuth";
 import { useYTMusicAuth } from "./hooks/useYTMusicAuth";
@@ -9,7 +9,7 @@ import Settings from "./components/Settings";
 const BEARER_TOKEN = import.meta.env.VITE_BEARER_TOKEN;
 
 function App() {
-  const [mode, setMode] = useState("ytmusic"); // 'spotify' or 'ytmusic'
+  const [mode, setMode] = useState("ytmusic");
   const [ytQuery, setYtQuery] = useState("");
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -17,10 +17,15 @@ function App() {
   const [transparency, setTransparency] = useState(
     localStorage.getItem('transparency') ? Number(localStorage.getItem('transparency')) : 60
   );
+  const [pinned, setPinned] = useState(localStorage.getItem('pinned') !== 'false');
 
   const [songData, setSongData] = useState(null);
   const [songAudioData, setSongAudioData] = useState(null);
   const [lyrics, setLyrics] = useState(null);
+
+  const spotifyIntervalRef = useRef(null);
+  const lastTrackIdRef = useRef(null);
+  const abortControllerRef = useRef(null);
 
   const name = songData?.item?.name || songData?.name;
   const artist = songData?.item?.artists?.map((a) => a.name).join(", ") || songData?.artist?.name;
@@ -31,64 +36,109 @@ function App() {
   const { fetchLyrics: fetchYTLyrics, loading: ytLoading, error: ytError } = useYTMusicAuth();
 
   useEffect(() => {
+    const savedPinned = localStorage.getItem('pinned');
+    const pinned = savedPinned === null ? true : savedPinned === 'true';
+    if (window.electronAPI?.setAlwaysOnTop) {
+      window.electronAPI.setAlwaysOnTop(pinned).catch(err => console.error('Error setting always on top:', err));
+    }
+  }, []);
+
+  const fetchCurrentTrack = useCallback(async () => {
     if (mode !== "spotify") return;
     
-    let interval;
-
-    async function fetchData() {
-      try {
-        const res = await spotifyApi.getMyCurrentPlayingTrack();
-        if (res?.item) {
-          setSongData(res);
-        } else {
-          console.log("No song is currently playing.");
-        }
-      } catch (err) {
-        console.error("❌ Error fetching current track:", err);
+    try {
+      const res = await spotifyApi.getMyCurrentPlayingTrack();
+      if (res?.item) {
+        setSongData(res);
       }
+    } catch (err) {
+      console.error("Error fetching current track:", err);
     }
-    fetchData();
-    interval = setInterval(fetchData, getCallSpeed(songAudioData?.tempo));
+  }, [mode, spotifyApi]);
 
-    return () => clearInterval(interval);
-  }, [mode, songAudioData?.tempo, spotifyApi]);
+  const fetchTrackLyrics = useCallback(async (id) => {
+    if (!id || mode !== "spotify") return;
+    
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
 
-  useEffect(() => {
-    if (mode !== "spotify" || !trackId) return;
-
-    async function fetchTrackData() {
-      try {
-        const [lyricsRes, audioRes] = await Promise.all([
-          fetch(
-            `https://spclient.wg.spotify.com/color-lyrics/v2/track/${trackId}?format=json&market=from_token`,
-            {
-              headers: {
-                Authorization: `Bearer ${BEARER_TOKEN}`,
-                "App-Platform": "WebPlayer",
-              },
-            }
-          ),
-          fetch(`https://api.spotify.com/v1/audio-features/${trackId}`, {
+    try {
+      const [lyricsRes, audioRes] = await Promise.all([
+        fetch(
+          `https://spclient.wg.spotify.com/color-lyrics/v2/track/${id}?format=json&market=from_token`,
+          {
             headers: {
               Authorization: `Bearer ${BEARER_TOKEN}`,
               "App-Platform": "WebPlayer",
             },
-          }),
-        ]);
+            signal: abortControllerRef.current.signal,
+          }
+        ),
+        fetch(`https://api.spotify.com/v1/audio-features/${id}`, {
+          headers: {
+            Authorization: `Bearer ${BEARER_TOKEN}`,
+            "App-Platform": "WebPlayer",
+          },
+          signal: abortControllerRef.current.signal,
+        }),
+      ]);
 
-        const lyricsData = await lyricsRes.json();
-        const audioData = await audioRes.json();
+      const lyricsData = await lyricsRes.json();
+      const audioData = await audioRes.json();
 
-        setLyrics(lyricsData?.lyrics?.lines);
-        setSongAudioData(audioData);
-      } catch (err) {
+      setLyrics(lyricsData?.lyrics?.lines);
+      setSongAudioData(audioData);
+    } catch (err) {
+      if (err.name !== 'AbortError') {
         setLyrics(null);
-        console.error("❌ Error fetching track data:", err);
+        console.error("Error fetching track data:", err);
       }
     }
+  }, [mode]);
 
-    fetchTrackData();
-  }, [mode, trackId]);
+  useEffect(() => {
+    if (mode !== "spotify") {
+      if (spotifyIntervalRef.current) {
+        clearInterval(spotifyIntervalRef.current);
+        spotifyIntervalRef.current = null;
+      }
+      return;
+    }
+
+    fetchCurrentTrack();
+    
+    const intervalMs = getCallSpeed(songAudioData?.tempo);
+    spotifyIntervalRef.current = setInterval(fetchCurrentTrack, intervalMs);
+
+    return () => {
+      if (spotifyIntervalRef.current) {
+        clearInterval(spotifyIntervalRef.current);
+      }
+    };
+  }, [mode, fetchCurrentTrack, songAudioData?.tempo]);
+
+  useEffect(() => {
+    if (mode !== "spotify" || !trackId || trackId === lastTrackIdRef.current) return;
+
+    lastTrackIdRef.current = trackId;
+    fetchTrackLyrics(trackId);
+
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, [mode, trackId, fetchTrackLyrics]);
+
+  useEffect(() => {
+    document.body.style.setProperty('--bg-alpha', (transparency / 100).toString());
+  }, [transparency]);
+
+  useEffect(() => {
+    document.body.classList.toggle('light-theme', theme === 'light');
+  }, [theme]);
 
   const handleYTSearch = async (e) => {
     e.preventDefault();
@@ -102,12 +152,10 @@ function App() {
     if (res && res.song) {
       setSongData(res.song);
       
-      // YT Music lyrics can be plain text or object. Format it for LyricsDisplay
       let formattedLyrics = null;
       if (typeof res.lyrics === 'string') {
         formattedLyrics = res.lyrics.split('\n').map(line => ({ words: line, startTimeMs: 0 }));
       } else if (Array.isArray(res.lyrics)) {
-        // If it's already an array of lines, adapt it
         formattedLyrics = res.lyrics.map(line => ({ words: line.text || line, startTimeMs: line.time || 0 }));
       }
       
@@ -118,22 +166,20 @@ function App() {
   const saveSettings = () => {
     localStorage.setItem('theme', theme);
     localStorage.setItem('transparency', transparency);
+    localStorage.setItem('pinned', pinned);
+    if (window.electronAPI?.setAlwaysOnTop) {
+      window.electronAPI.setAlwaysOnTop(pinned).catch(err => console.error('Error setting always on top:', err));
+    }
     setIsSettingsOpen(false);
   };
 
-  useEffect(() => {
-    // Update body's CSS variable for dynamic alpha transparency
-    document.body.style.setProperty('--bg-alpha', (transparency / 100).toString());
-  }, [transparency]);
-
-  useEffect(() => {
-    // Optional: apply light-theme to body instead of container to ensure full coverage
-    if (theme === 'light') {
-      document.body.classList.add('light-theme');
-    } else {
-      document.body.classList.remove('light-theme');
-    }
-  }, [theme]);
+  const handleModeChange = (newMode) => {
+    lastTrackIdRef.current = null;
+    setSongData(null);
+    setLyrics(null);
+    setSongAudioData(null);
+    setMode(newMode);
+  };
 
   // Settings Gear SVG
   const GearIcon = () => (
@@ -151,6 +197,8 @@ function App() {
           setTheme={setTheme}
           transparency={transparency}
           setTransparency={setTransparency}
+          pinned={pinned}
+          setPinned={setPinned}
           onSave={saveSettings}
           onClose={() => setIsSettingsOpen(false)}
         />
@@ -162,14 +210,26 @@ function App() {
         <div className="window-controls">
           <button 
             className="icon-btn window-btn close-btn"
-            onClick={() => window.electronAPI && window.electronAPI.closeWindow()}
+            onClick={() => {
+              if (window.electronAPI?.closeWindow) {
+                window.electronAPI.closeWindow().catch(err => console.error('Close error:', err));
+              } else {
+                console.warn('electronAPI not available');
+              }
+            }}
             title="Close"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
           <button 
             className="icon-btn window-btn min-btn"
-            onClick={() => window.electronAPI && window.electronAPI.minimizeWindow()}
+            onClick={() => {
+              if (window.electronAPI?.minimizeWindow) {
+                window.electronAPI.minimizeWindow().catch(err => console.error('Minimize error:', err));
+              } else {
+                console.warn('electronAPI not available');
+              }
+            }}
             title="Minimize"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -180,13 +240,13 @@ function App() {
         <div className="segmented-control">
           <button 
             className={`segment-btn ${mode === 'spotify' ? 'active spotify-mode' : ''}`}
-            onClick={() => { setMode("spotify"); setSongData(null); setLyrics(null); }}
+            onClick={() => handleModeChange("spotify")}
           >
             Spotify Auto
           </button>
           <button 
             className={`segment-btn ${mode === 'ytmusic' ? 'active' : ''}`}
-            onClick={() => { setMode("ytmusic"); setSongData(null); setLyrics(null); }}
+            onClick={() => handleModeChange("ytmusic")}
           >
             YT Music Manual
           </button>

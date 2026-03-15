@@ -15,7 +15,7 @@
     "preview": "vite preview",
     "electron": "electron .",
     "server": "node server.js",
-    "start": "concurrently -k \"pnpm run dev\" \"pnpm run electron\" \"pnpm run server\"",
+    "start": "concurrently -k \"pnpm run dev\" \"pnpm run electron\"",
     "dist": "vite build && electron-builder"
   },
   "dependencies": {

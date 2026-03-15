@@ -10,7 +10,7 @@ let tray;
 let serverProcess;
 
 function startBackendServer() {
-  const serverPath = app.isPackaged 
+  const serverPath = app.isPackaged
     ? path.join(__dirname, "..", "server.js") // In asar, __dirname is root/dist or root/public
     : path.join(__dirname, "..", "server.js");
 
@@ -44,18 +44,21 @@ function createWindow(height) {
   });
 
   // Handle IPC commands
-  ipcMain.on("window-close", () => {
+  ipcMain.handle("window-close", () => {
     mainWindow.close();
   });
 
-  ipcMain.on("window-minimize", () => {
+  ipcMain.handle("window-minimize", () => {
     mainWindow.minimize();
+  });
+
+  ipcMain.handle("window-set-always-on-top", (_, flag) => {
+    console.log("Setting always on top:", flag);
+    mainWindow.setAlwaysOnTop(flag, "screen-saver");
   });
 
   // Make window non-clickable (ignores all mouse events)
   mainWindow.setIgnoreMouseEvents(false); //if you have to log into spotify turn to false and restart program
-
-  mainWindow.setAlwaysOnTop(true, "screen-saver");
 
   mainWindow.on("ready-to-show", () => {
     mainWindow.show();
