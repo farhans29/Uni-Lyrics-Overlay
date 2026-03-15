@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-function LyricsDisplay({ songData, lyrics }) {
+function LyricsDisplay({ songData, lyrics, mode }) {
   const lyricsRef = useRef(null)
   const [currentLyricIndex, setCurrentLyricIndex] = useState(0)
 
@@ -34,7 +34,9 @@ function LyricsDisplay({ songData, lyrics }) {
   return (
     <div className="lyrics-box" ref={lyricsRef}>
       {lyrics === null ? (
-        <p>No lyrics...</p>
+        <p className="lyrics-line" style={{ color: 'var(--text-secondary)', textAlign: 'center' }}>
+          {mode === 'ytmusic' ? 'Please search the song lyrics first' : 'Waiting for Spotify track...'}
+        </p>
       ) : (
         lyrics.map((line, index) => (
           <p key={index} className={`lyrics-line ${index === currentLyricIndex ? 'active' : ''}`}>
