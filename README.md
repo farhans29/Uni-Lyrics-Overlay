@@ -82,6 +82,18 @@ This project uses **Vite**, **Electron**, and **pnpm**.
 
 ---
 
+## YouTube Music Mode (No Auth Required)
+
+You can use the **YouTube Music Mode** without setting up any Spotify credentials or `.env` file!
+
+- Simply switch to YT Music mode in the app
+- Search for any song and artist manually
+- Lyrics will be fetched directly from YouTube Music
+
+This makes it perfect for users who only want lyrics from YouTube Music and don't want to deal with Spotify authentication.
+
+---
+
 ## Building Executable
 
 You can compile this overlay into a standalone Windows `.exe` file!
