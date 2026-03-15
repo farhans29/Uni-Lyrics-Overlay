@@ -12,6 +12,7 @@ export default ({ mode }) => {
 
     server: {
       port: parseInt(process.env.VITE_PORT),
+      host: "127.0.0.1",
     },
   });
 };

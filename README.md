@@ -2,12 +2,11 @@
   <img src="./src/assets/icon.png" width="100" alt="Lyrics Overlay logo" />
 </p>
 
-<h1 align="center">Spotify Lyrics Overlay</h1>
-<p align="center"><strong>Live-synced Spotify lyrics overlay for desktop.</strong>
-</p>
-<div align="center">
-<img src="./demo.gif" width="500" alt="App demo" />
-</div>
+<h1 align="center">Universal Lyrics Overlay (Premium Edition)</h1>
+<p align="center"><strong>Live-synced Universal (Spotify & YT Music) lyrics overlay for desktop.</strong></p>
+
+> **Note:** This is a revamped fork of the original project by [Nicolas-Arias3142](https://github.com/Nicolas-Arias3142/Spotify_Lyrics_Overlay). This version introduces a brand new sleek UI and Universal (Spotify & YT Music) support!
+
 <p align="center">
   <img src="https://img.shields.io/badge/status-beta-yellow" />
   <img src="https://img.shields.io/badge/license-MIT-green" />
@@ -16,41 +15,46 @@
 </p>
 
 <p align="center">
-  <a href="#introduction">Introduction</a> · 
+  <a href="#features">Features</a> · 
   <a href="#installation">Installation</a> · 
-  <a href="#disclaimers">Disclaimers</a> · 
-  <a href="#license">License</a> 
+  <a href="#building-executable">Building Executable</a> · 
+  <a href="#disclaimers">Disclaimers</a>
 </p>
 
-## Introduction
+## Features
+- **Spotify Auto Mode**: Automatically detects and syncs lyrics to your currently playing Spotify track.
+- **YouTube Music Mode**: Manually search for any song and artist to pull synced lyrics straight from YT Music.
+- **Premium Audio Player Aesthetic**:
+  - Beautiful frosted glass Control Bar and Settings Modal.
+  - Fluid, high-contrast typography powered by *Inter Tight*.
+  - Smoothly scaling and glowing active lyric sentences.
+- **Customizable Overlay**: Use the settings gear to change the theme (Dark/Light) and adjust background glass transparency.
 
-Lyrics Overlay displays synced Spotify lyrics as an always-on-top desktop overlay. It runs alongside any app — great for karaoke, music study, or just enhancing your listening experience.
+---
 
 ## Installation
 
-This project requires **Node.js** installed on your machine.
+This project uses **Vite**, **Electron**, and **pnpm**.
 
 ### 🧩 Step-by-Step Setup
 
 1.  **Clone the repository**  
-    Follow [GitHub's cloning instructions](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) or run:
     ```bash
     git clone https://github.com/Nicolas-Arias3142/Spotify_Lyrics_Overlay.git
     cd Spotify_Lyrics_Overlay
     ```
-2.  **Install dependencies**
+2.  **Install dependencies**  
+    *(We use `pnpm` for this project)*
     ```bash
-    npm install
+    pnpm install
     ```
 3.  **Set up your `.env` file**
 
-    Create a [Spotify Developer account](https://developer.spotify.com)
-
-    Create a new project in the Spotify Developer Dashboard
-
-    Copy `.env.example` and rename it to .env
-
-    In the `.env` file, set the following values:
+    You need to configure your Spotify credentials for the Auto Mode:
+    - Create a [Spotify Developer account](https://developer.spotify.com)
+    - Create a new project in the Spotify Developer Dashboard
+    - Copy `.env.example` and rename it to `.env`
+    - In the `.env` file, set the following values:
 
     ```bash
     VITE_BEARER_TOKEN=fresh bearer token
@@ -60,26 +64,38 @@ This project requires **Node.js** installed on your machine.
     ```
 
     **_How to get bearer token_**
+    - Open your browser and tap F12 for *Developer Tools*.
+    - Navigate to the *Network* tab and filter by `Fetch/XHR`.
+    - Log into [Spotify Web Player](https://open.spotify.com/) and play a song with lyrics.
+    - Look for the request to `https://spclient.wg.spotify.com/color-lyrics/v2`.
+    - In the `Request Headers`, find `Authorization: Bearer <token>`. Copy the token and paste it into `VITE_BEARER_TOKEN`.
 
-    - Open your browser and open _Developer Tools_ by clicking F12
-    - Navigate to the _Network_ tab inside your _Developer Tools_ and filter using `Fetch/XHR`
-    - Then visit https://open.spotify.com/ and make sure that you already logged in and pick any song with lyrics and open the lyrics view on spotify
-    - Spotify changed it so you have to click through the requests and look for `https://spclient.wg.spotify.com/color-lyrics/v2` in the `Headers` section
-    - In the `Request Headers` look for Authorization: Bearer - Copy the token after the word Bearer and add to VITE_BEARER_TOKEN
-
-    - Make sure the redirect URI is also added to your Spotify app settings
-
-4.  **Start the app**
+4.  **Start the app (Development)**
     ```bash
-    npm run start
+    pnpm run start
     ```
-    Once running, the app will launch in Electron and begin displaying synced lyrics for your currently playing Spotify track.
+    Once running, the app will launch in Electron.
+
+---
+
+## Building Executable
+
+You can compile this overlay into a standalone Windows `.exe` file!
+
+1. Make sure `electron-builder` is installed as a devDependency.
+2. Run the build command:
+   ```bash
+   pnpm run dist
+   ```
+3. Your compiled executable will appear in the `dist-electron` folder!
+
+---
 
 ## Disclaimers
 
-If you run and you have to log into spotify through the program, close the program and go to `public/electron.cjs` read the comments in the createWindow function.
+If you run and you have to log into spotify through the program, close the program and go to `public/electron.cjs` read the comments in the `createWindow` function.
 
-After every 30min - 1hr it will say **_*No lyrics found*_** that means you need a fresh bearer token and restart program. I have not added auto grab for the token but am planning to for the future.
+After every 30min - 1hr it will say **_*No lyrics found*_** that means you need a fresh bearer token and restart program. Auto-grabbing the token is planned for future updates by the original author.
 
 ## License
 

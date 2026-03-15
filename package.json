@@ -2,23 +2,30 @@
   "name": "spotify-lyrics-overlay",
   "private": true,
   "version": "0.0.0",
+  "description": "Live-synced Spotify & YT Music lyrics overlay for desktop.",
+  "author": "Lyrics Overlay Contributors",
   "type": "module",
   "main": "public/electron.cjs",
   "license": "MIT",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "test": "pnpm run lint",
+    "build": "pnpm run test && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "electron": "electron .",
-    "start": "concurrently -k \"npm run dev\" \" npm run electron\""
+    "server": "node server.js",
+    "start": "concurrently -k \"pnpm run dev\" \"pnpm run electron\" \"pnpm run server\"",
+    "dist": "vite build && electron-builder"
   },
   "dependencies": {
+    "cors": "^2.8.6",
     "dotenv": "^16.5.0",
-    "electron": "^36.2.1",
+    "express": "^5.2.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "spotify-web-api-js": "^1.5.2"
+    "spotify-web-api-js": "^1.5.2",
+    "ytmusic-api": "^5.3.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
@@ -26,11 +33,43 @@
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
     "concurrently": "^9.1.2",
+    "electron": "^36.2.1",
+    "electron-builder": "^26.8.1",
     "eslint": "^9.25.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
     "vite": "^6.3.5",
     "wait-on": "^8.0.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild",
+      "@biomejs/biome"
+    ]
+  },
+  "build": {
+    "appId": "com.spotifylyricsoverlay.app",
+    "productName": "Lyrics Overlay",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "dist/**/*",
+      "public/electron.cjs",
+      "public/preload.js",
+      "public/icon.png",
+      "server.js",
+      ".env"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "public/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }
