@@ -58,7 +58,7 @@
     "files": [
       "dist/**/*",
       "public/electron.cjs",
-      "public/preload.js",
+      "public/preload.cjs",
       "public/icon.png",
       "server.js",
       ".env"

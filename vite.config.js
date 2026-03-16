@@ -8,6 +8,7 @@ export default ({ mode }) => {
   // import.meta.env.VITE_PORT available here with: process.env.VITE_PORT
 
   return defineConfig({
+    base: './',
     plugins: [react()],
 
     server: {

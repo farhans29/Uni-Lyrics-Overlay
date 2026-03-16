@@ -140,6 +140,11 @@ function App() {
     document.body.classList.toggle('light-theme', theme === 'light');
   }, [theme]);
 
+  useEffect(() => {
+    document.body.classList.toggle('ytmusic-theme', mode === 'ytmusic');
+    document.body.classList.toggle('spotify-theme', mode === 'spotify');
+  }, [mode]);
+
   const handleYTSearch = async (e) => {
     e.preventDefault();
     if (!ytQuery.trim()) return;
@@ -245,7 +250,7 @@ function App() {
             Spotify Auto
           </button>
           <button 
-            className={`segment-btn ${mode === 'ytmusic' ? 'active' : ''}`}
+            className={`segment-btn ${mode === 'ytmusic' ? 'active ytmusic-mode' : ''}`}
             onClick={() => handleModeChange("ytmusic")}
           >
             YT Music Manual
@@ -287,6 +292,9 @@ function App() {
         formatTime={formatTime}
         hideTimer={mode === "ytmusic"}
       />
+
+      {(songData || lyrics) && <hr className="section-separator" />}
+
       <div style={{ WebkitAppRegion: 'no-drag', flex: 1, overflowY: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }} className="hide-scroll">
         <LyricsDisplay songData={songData || { progress_ms: 0 }} lyrics={lyrics} mode={mode} />
       </div>
