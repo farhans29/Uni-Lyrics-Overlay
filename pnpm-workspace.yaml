@@ -1,4 +1,5 @@
-ignoredBuiltDependencies:
+verifyDepsBeforeRun: false
+onlyBuiltDependencies:
   - '@biomejs/biome'
   - electron
   - esbuild

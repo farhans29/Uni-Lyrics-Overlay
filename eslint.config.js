@@ -4,12 +4,24 @@ import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 
 export default [
-  { ignores: ["dist", "vite.config.js", "public/preload.js"] },
+  {
+    ignores: [
+      "dist",
+      "dist-electron",
+      "vite.config.js",
+      "public/preload.js",
+      "public/services/vendor/**",
+      "scripts/**",
+    ],
+  },
   {
     files: ["**/*.{js,jsx}"],
     languageOptions: {
       ecmaVersion: 2020,
-      globals: globals.browser,
+      globals: {
+        ...globals.browser,
+        __APP_VERSION__: "readonly",
+      },
       parserOptions: {
         ecmaVersion: "latest",
         ecmaFeatures: { jsx: true },

@@ -1,26 +1,51 @@
 const { app, BrowserWindow, screen, Tray, Menu, ipcMain } = require("electron");
 const path = require("node:path");
-const { fork } = require("node:child_process");
-require("dotenv").config(); // Load .env
+const { ytMusicLyricsService } = require("./services/ytmusicService.cjs");
+const { startMediaDetector, getSystemMedia, stopMediaDetector } = require("./mediaDetector.cjs");
+
+try {
+  require("dotenv").config(); // Load .env in dev if available
+} catch {
+  // .env / dotenv not required in packaged desktop build
+}
 
 const port = process.env.VITE_PORT || 5173;
 
-let mainWindow;
-let tray;
-let serverProcess;
+let mainWindow = null;
+let tray = null;
 
-function startBackendServer() {
-  const serverPath = app.isPackaged
-    ? path.join(__dirname, "..", "server.js") // In asar, __dirname is root/dist or root/public
-    : path.join(__dirname, "..", "server.js");
+function getSafeWindow() {
+  return mainWindow && !mainWindow.isDestroyed() ? mainWindow : null;
+}
 
-  serverProcess = fork(serverPath, [], {
-    env: { ...process.env, NODE_ENV: app.isPackaged ? "production" : "development" },
-    stdio: "inherit" // Forward console logs to Electron's terminal
+function registerIpcHandlers() {
+  ipcMain.handle("window-close", () => {
+    getSafeWindow()?.close();
   });
 
-  serverProcess.on("error", (err) => {
-    console.error("❌ Failed to start Backend Server:", err);
+  ipcMain.handle("window-minimize", () => {
+    getSafeWindow()?.minimize();
+  });
+
+  ipcMain.handle("window-set-always-on-top", (_, flag) => {
+    getSafeWindow()?.setAlwaysOnTop(Boolean(flag), "screen-saver");
+  });
+
+  ipcMain.handle("get-system-media", () => {
+    return getSystemMedia();
+  });
+
+  ipcMain.handle("get-app-version", () => {
+    return app.getVersion();
+  });
+
+  ipcMain.handle("ytmusic-search-lyrics", async (_, query) => {
+    try {
+      return await ytMusicLyricsService.searchSongAndLyrics(query);
+    } catch (error) {
+      console.error("❌ YTMusic IPC Error:", error);
+      return { error: error.message || "Internal server error" };
+    }
   });
 }
 
@@ -43,80 +68,70 @@ function createWindow(height) {
     },
   });
 
-  // Handle IPC commands
-  ipcMain.handle("window-close", () => {
-    mainWindow.close();
-  });
-
-  ipcMain.handle("window-minimize", () => {
-    mainWindow.minimize();
-  });
-
-  ipcMain.handle("window-set-always-on-top", (_, flag) => {
-    console.log("Setting always on top:", flag);
-    mainWindow.setAlwaysOnTop(flag, "screen-saver");
-  });
-
   // Make window non-clickable (ignores all mouse events)
   mainWindow.setIgnoreMouseEvents(false); //if you have to log into spotify turn to false and restart program
 
-  mainWindow.on("ready-to-show", () => {
-    mainWindow.show();
+  mainWindow.once("ready-to-show", () => {
+    getSafeWindow()?.show();
+  });
+
+  mainWindow.on("closed", () => {
+    mainWindow = null;
   });
 
   const isDev = !app.isPackaged;
   if (isDev) {
-    mainWindow.loadURL(`http://localhost:${port}`);
+    mainWindow.loadURL(`http://127.0.0.1:${port}`);
   } else {
     mainWindow.loadFile(path.join(__dirname, "../dist/index.html"));
   }
 }
 
 app.whenReady().then(() => {
-  // Start the background YT Music API server before creating the window
-  startBackendServer();
+  registerIpcHandlers();
+  startMediaDetector();
+  // Warm up YTMusic API in the background
+  ytMusicLyricsService.ensureInitialized().catch(() => {});
 
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-
-  //   // Set app user model id for Windows
-  //   electronApp.setAppUserModelId("com.electron");
-
-  //   // Watch for dev tools shortcuts
-  //   app.on("browser-window-created", (_, window) => {
-  //     optimizer.watchWindowShortcuts(window);
-  //   });
+  const appVersion = app.getVersion();
 
   createWindow(height);
 
   app.on("activate", function () {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    if (BrowserWindow.getAllWindows().length === 0) createWindow(height);
   });
 
   tray = new Tray(path.join(__dirname, "icon.png"));
 
   const trayMenu = Menu.buildFromTemplate([
     {
+      label: `Lyrics Overlay v${appVersion}`,
+      enabled: false,
+    },
+    { type: "separator" },
+    {
       label: "Vertical Layout",
       click: () => {
-        mainWindow.setSize(350, height);
+        getSafeWindow()?.setSize(350, height);
       },
     },
     {
       label: "Horizontal Layout",
       click: () => {
-        mainWindow.setSize(width, 150);
+        getSafeWindow()?.setSize(width, 150);
       },
     },
     {
       label: "Draggable",
       click: () => {
-        mainWindow.setIgnoreMouseEvents(false);
+        getSafeWindow()?.setIgnoreMouseEvents(false);
       },
     },
     {
       label: "Static",
       click: () => {
-        mainWindow.setIgnoreMouseEvents(true);
+        getSafeWindow()?.setIgnoreMouseEvents(true);
       },
     },
     { type: "separator" },
@@ -126,7 +141,7 @@ app.whenReady().then(() => {
     },
   ]);
 
-  tray.setToolTip("Lyrics Overlay");
+  tray.setToolTip(`Lyrics Overlay v${appVersion}`);
   tray.setContextMenu(trayMenu);
 });
 app.on("window-all-closed", () => {
@@ -135,9 +150,10 @@ app.on("window-all-closed", () => {
   }
 });
 
-// Kill the backend server when Electron gracefully exits
 app.on("before-quit", () => {
-  if (serverProcess) {
-    serverProcess.kill();
+  stopMediaDetector();
+  if (tray && !tray.isDestroyed()) {
+    tray.destroy();
+    tray = null;
   }
 });

@@ -1,7 +1,7 @@
 {
   "name": "spotify-lyrics-overlay",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.8",
   "description": "Live-synced Spotify & YT Music lyrics overlay for desktop.",
   "author": "Lyrics Overlay Contributors",
   "type": "module",
@@ -9,19 +9,23 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite",
-    "test": "pnpm run lint",
-    "build": "pnpm run test && vite build",
+    "test": "eslint .",
+    "build": "eslint . && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "electron": "electron .",
-    "server": "node server.js",
-    "start": "concurrently -k \"pnpm run dev\" \"pnpm run electron\"",
-    "dist": "vite build && electron-builder"
+    "start": "concurrently -k \"vite\" \"wait-on tcp:127.0.0.1:5173 && electron .\"",
+    "dist": "eslint . && vite build && electron-builder",
+    "version:current": "node scripts/version.cjs",
+    "version:patch": "node scripts/version.cjs patch",
+    "version:minor": "node scripts/version.cjs minor",
+    "version:major": "node scripts/version.cjs major",
+    "release:patch": "node scripts/version.cjs patch && pnpm run dist",
+    "release:minor": "node scripts/version.cjs minor && pnpm run dist",
+    "release:major": "node scripts/version.cjs major && pnpm run dist"
   },
   "dependencies": {
-    "cors": "^2.8.6",
     "dotenv": "^16.5.0",
-    "express": "^5.2.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "spotify-web-api-js": "^1.5.2",
@@ -59,9 +63,10 @@
       "dist/**/*",
       "public/electron.cjs",
       "public/preload.cjs",
+      "public/mediaDetector.cjs",
+      "public/services/**/*",
       "public/icon.png",
-      "server.js",
-      ".env"
+      "!**/node_modules/**"
     ],
     "win": {
       "target": "nsis",
