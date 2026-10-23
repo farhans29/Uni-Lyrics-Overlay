@@ -1,6 +1,7 @@
 MIT License
 
-Copyright (c) 2025 Spotify_Lyrics_Overlay
+Copyright (c) 2025-2026 farhans29 & Universal Lyrics Overlay Contributors
+Copyright (c) 2025 Nicolas-Arias3142 (Original Spotify_Lyrics_Overlay)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +20,15 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+-------------------------------------------------------------------------------
+THIRD-PARTY NOTICES & DISCLAIMER
+
+Universal Lyrics Overlay is an independent open-source desktop utility and is
+not affiliated with, endorsed by, or sponsored by Spotify AB, Google LLC
+(YouTube Music), LRCLIB, or Microsoft Corporation.
+
+All song lyrics, track metadata, and album cover artwork retrieved at runtime
+are the copyrighted property of their respective artists, publishers, and
+rights holders, and are displayed solely for personal, non-commercial desktop
+overlay use.

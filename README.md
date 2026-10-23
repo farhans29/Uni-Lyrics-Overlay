@@ -1,122 +1,120 @@
 <p align="center">
-  <img src="./src/assets/icon.png" width="100" alt="Lyrics Overlay logo" />
+  <img src="./public/icon.png" width="96" alt="Universal Lyrics Overlay Logo" />
 </p>
 
-<h1 align="center">Universal Lyrics Overlay (Premium Edition)</h1>
-<p align="center"><strong>Live-synced Universal (Spotify & YT Music) lyrics overlay for desktop.</strong></p>
+<h1 align="center">Universal Lyrics Overlay</h1>
+<p align="center"><strong>Real-time, time-synced desktop lyrics overlay for Spotify, YouTube Music, and Windows Media Players.</strong></p>
 
-> **Note:** This is a revamped fork of the original project by [Nicolas-Arias3142](https://github.com/Nicolas-Arias3142/Spotify_Lyrics_Overlay). This version introduces a brand new sleek UI and Universal (Spotify & YT Music) support!
+> **Note:** Originally forked from [Nicolas-Arias3142/Spotify_Lyrics_Overlay](https://github.com/Nicolas-Arias3142/Spotify_Lyrics_Overlay), **Universal Lyrics Overlay** has been completely re-architected with native Windows OS media detection, time-synced LRCLIB + YouTube Music lyrics, a Spotify Core UI, and zero API setup required.
 
 <p align="center">
-  <img src="https://img.shields.io/badge/status-beta-yellow" />
-  <img src="https://img.shields.io/badge/license-MIT-green" />
-  <img src="https://img.shields.io/badge/electron-%5E28.0.0-blue" />
-  <img src="https://img.shields.io/badge/react-%5E18.0.0-blue" />
+  <img src="https://img.shields.io/badge/version-1.0.9-1DB954?style=flat-square" alt="Version" />
+  <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License" />
+  <img src="https://img.shields.io/badge/electron-36-47848F?style=flat-square&logo=electron" alt="Electron 36" />
+  <img src="https://img.shields.io/badge/react-19-61DAFB?style=flat-square&logo=react" alt="React 19" />
+  <img src="https://img.shields.io/badge/platform-Windows-0078D6?style=flat-square&logo=windows" alt="Windows" />
 </p>
 
 <p align="center">
-  <a href="#features">Features</a> · 
-  <a href="#installation">Installation</a> · 
-  <a href="#building-executable">Building Executable</a> · 
-  <a href="#disclaimers">Disclaimers</a>
+  <a href="#features">Features</a> ·
+  <a href="#getting-started">Getting Started</a> ·
+  <a href="#building-installer--executable">Building Executable</a> ·
+  <a href="#versioning">Versioning</a> ·
+  <a href="#disclaimers">Disclaimers</a> ·
+  <a href="#license">License</a>
 </p>
+
+---
 
 ## Features
-- **Spotify Auto Mode**: Automatically detects and syncs lyrics to your currently playing Spotify track.
-- **YouTube Music Mode**: Manually search for any song and artist to pull synced lyrics straight from YT Music.
-- **Premium Audio Player Aesthetic**:
-  - Beautiful frosted glass Control Bar and Settings Modal.
-  - Fluid, high-contrast typography powered by *Inter Tight*.
-  - Smoothly scaling and glowing active lyric sentences.
-- **Customizable Overlay**: Use the settings gear to change the theme (Dark/Light) and adjust background glass transparency.
+
+- **Universal Auto-Detect Mode (Zero Config / No API Keys Needed)**
+  - Automatically detects the active song, artist, playback state, and timeline position from **Spotify**, **YouTube Music** (Chrome, Edge, Brave, Firefox, Desktop App), **Apple Music**, **VLC**, and any Windows media player via Windows `GlobalSystemMediaTransportControlsSessionManager` (GSMTC).
+  - Fetches millisecond-synced lyrics from **LRCLIB** with automatic fallback to **YouTube Music** lyrics and smart proportional pacing.
+- **Manual Search Mode**
+  - Search for any song or artist on demand directly from **YouTube Music** without needing an active media player.
+- **Bottom-Docked Spotify Core Player & Transport Controls**
+  - Play / Pause, Stop & Reset (`0:00`), interactive timeline progress scrubber, and click-on-any-lyric-line to seek.
+  - Dedicated **Sync** button in `Auto Detect` mode to re-lock lyrics to the live OS media timestamp at any time.
+- **Lyrics-Only Mode**
+  - One-click eye toggle in the top bar (or in Settings) hides both the top control bar and bottom player card so only floating lyrics remain on screen. Hover anywhere over the window to reveal the floating **Show Player** pill.
+- **Customizable Visuals & Typography**
+  - **Album Art Picture Background**: Display crisp album cover artwork in the middle-upper background behind the lyrics.
+  - **Match Album Cover Color Glow**: Ambient blurred album-art color backdrop that adapts to every track.
+  - **Font Type Selector**: Choose between `Default (Inter Tight)`, `Sans-Serif`, `Serif`, `Roboto`, `Monospace`, and fonts installed on your PC (`Segoe UI`, `Georgia`, `Arial`, `Consolas`, `Cascadia Code`, etc.).
+  - **Dark & Light Themes**, **Background Transparency Slider (`0%` – `100%`)**, and **Pinned Window (Always on Top)**.
 
 ---
 
-## Installation
+## Getting Started
 
-This project uses **Vite**, **Electron**, and **pnpm**.
+### Prerequisites
+- **Windows 10 / 11** (64-bit)
+- **Node.js 20+**
+- **pnpm** (`corepack enable pnpm`)
 
-### 🧩 Step-by-Step Setup
+### Quick Setup (Development)
 
-1.  **Clone the repository**  
-    ```bash
-    git clone https://github.com/Nicolas-Arias3142/Spotify_Lyrics_Overlay.git
-    cd Spotify_Lyrics_Overlay
-    ```
-2.  **Install dependencies**  
-    *(We use `pnpm` for this project)*
-    ```bash
-    pnpm install
-    ```
-3.  **Build the project**
-    ```bash
-    pnpm run build
-    ```
-4.  **Set up your `.env` file**
-
-    You need to configure your Spotify credentials for the Auto Mode:
-    - Create a [Spotify Developer account](https://developer.spotify.com)
-    - Create a new project in the Spotify Developer Dashboard
-    - Copy `.env.example` and rename it to `.env`
-    - In the `.env` file, set the following values:
-
-    ```bash
-    VITE_BEARER_TOKEN=fresh bearer token
-    VITE_SPOTIFY_CLIENT_ID=your_spotify_client_id
-    VITE_SPOTIFY_REDIRECT_URI=http://localhost:{your redirect port}
-    VITE_PORT={same port as redirect url}
-    ```
-
-    **_How to get bearer token_**
-    - Open your browser and tap F12 for *Developer Tools*.
-    - Navigate to the *Network* tab and filter by `Fetch/XHR`.
-    - Log into [Spotify Web Player](https://open.spotify.com/) and play a song with lyrics.
-    - Look for the request to `https://spclient.wg.spotify.com/color-lyrics/v2`.
-    - In the `Request Headers`, find `Authorization: Bearer <token>`. Copy the token and paste it into `VITE_BEARER_TOKEN`.
-
-5.  **Start the app (Development)**
-    ```bash
-    pnpm run start
-    ```
-    Once running, the app will launch in Electron.
-
----
-
-## YouTube Music Mode (No Auth Required)
-
-You can use the **YouTube Music Mode** without setting up any Spotify credentials or `.env` file!
-
-- Simply switch to YT Music mode in the app
-- Search for any song and artist manually
-- Lyrics will be fetched directly from YouTube Music
-
-This makes it perfect for users who only want lyrics from YouTube Music and don't want to deal with Spotify authentication.
-
----
-
-## Building Executable
-
-You can compile this overlay into a standalone Windows `.exe` file!
-
-1. Make sure `electron-builder` is installed as a devDependency.
-2. Run the build command:
+1. **Clone the repository**
    ```bash
-   pnpm run build
+   git clone https://github.com/farhans29/Uni-Lyrics-Overlay.git
+   cd Uni-Lyrics-Overlay
    ```
-3. Run the dist command:
+
+2. **Install dependencies**
    ```bash
-   pnpm run dist
+   pnpm install
    ```
-4. Your compiled executable will appear in the `dist-electron` folder!
+
+3. **Run in development mode**
+   ```bash
+   pnpm run start
+   ```
+   > **No `.env` file is required** for `Auto Detect` or `Manual` modes. The overlay works out of the box.
+
+---
+
+## Building Installer & Executable
+
+Compile the overlay into a standalone Windows NSIS installer (`Lyrics Overlay Setup <version>.exe`) and portable unpacked executable:
+
+```bash
+pnpm run dist
+```
+
+Build outputs are generated in the `dist-electron/` directory:
+- `dist-electron/Lyrics Overlay Setup <version>.exe` — Standalone Windows installer
+- `dist-electron/win-unpacked/Lyrics Overlay.exe` — Portable unpacked executable
+
+---
+
+## Versioning
+
+This project follows **Semantic Versioning (`MAJOR.MINOR.PATCH`)** managed via [`scripts/version.cjs`](./scripts/version.cjs) and tracked in [`CHANGELOG.md`](./CHANGELOG.md):
+
+```bash
+# Check current version
+pnpm run version:current
+
+# Bump patch version (e.g., 1.0.8 -> 1.0.9) and update CHANGELOG.md
+node scripts/version.cjs patch "Description of changes"
+
+# Bump version and build Windows installer in one step
+pnpm run release:patch
+```
 
 ---
 
 ## Disclaimers
 
-If you run and you have to log into spotify through the program, close the program and go to `public/electron.cjs` read the comments in the `createWindow` function.
+- **Non-Affiliation**: Universal Lyrics Overlay is an independent open-source project and is not affiliated with, endorsed by, or sponsored by Spotify AB, Google LLC (YouTube Music), or Microsoft Corporation. All product names, logos, and brands are property of their respective owners.
+- **Lyrics & Artwork Ownership**: All song lyrics and album cover artwork displayed by the application remain the intellectual property of their respective songwriters, publishers, and record labels.
+- **Legacy Spotify Web API Mode (Optional / Hidden by Default)**:
+  - If you manually enable and use the legacy Spotify Web API mode instead of the built-in OS Auto-Detect mode, and you are prompted to log into Spotify through the program, close the program and inspect the `createWindow` comments in [`public/electron.cjs`](./public/electron.cjs).
+  - In legacy Spotify Web API mode, bearer tokens expire every 30–60 minutes (`No lyrics found`), requiring a fresh token. Using the default **Auto Detect** mode avoids this limitation completely.
 
-After every 30min - 1hr it will say **_*No lyrics found*_** that means you need a fresh bearer token and restart program. Auto-grabbing the token is planned for future updates by the original author.
+---
 
 ## License
 
-This application is licensed under the [MIT license](https://github.com/Nicolas-Arias3142/Spotify_Lyrics_Overlay/blob/main/LICENSE).
+Licensed under the [MIT License](./LICENSE).

@@ -1,7 +1,7 @@
 {
   "name": "spotify-lyrics-overlay",
   "private": true,
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Live-synced Spotify & YT Music lyrics overlay for desktop.",
   "author": "Lyrics Overlay Contributors",
   "type": "module",
