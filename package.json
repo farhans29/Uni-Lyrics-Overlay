@@ -1,7 +1,7 @@
 {
   "name": "spotify-lyrics-overlay",
   "private": true,
-  "version": "1.0.11",
+  "version": "1.0.13",
   "description": "Live-synced Spotify & YT Music lyrics overlay for desktop.",
   "author": "Lyrics Overlay Contributors",
   "type": "module",
@@ -94,7 +94,14 @@
         "zip"
       ],
       "icon": "public/icon.png",
-      "category": "public.app-category.music"
+      "category": "public.app-category.music",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.inherit.plist",
+      "extendInfo": {
+        "NSAppleEventsUsageDescription": "Lyrics Overlay needs permission to read playback status from Spotify and Apple Music."
+      }
     }
   }
 }

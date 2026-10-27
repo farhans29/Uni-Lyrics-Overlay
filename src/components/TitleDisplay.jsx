@@ -33,7 +33,7 @@ const TitleDisplay = memo(function TitleDisplay({
             type="button"
             className={`spotify-sync-btn ${isSyncing ? 'syncing' : ''}`}
             onClick={onSync}
-            title="Sync with currently playing Windows media"
+            title="Sync with currently playing media (Spotify, Apple Music, YouTube Music)"
           >
             <SyncIcon className={isSyncing ? 'spin-icon' : ''} />
             <span>Sync</span>

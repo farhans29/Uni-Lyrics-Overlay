@@ -176,30 +176,151 @@ while true; do
   fi
 
   OUT=$(osascript -e '
+    set mediaOut to ""
+
+    -- 1. Spotify (Desktop App)
     if application "Spotify" is running then
-      tell application "Spotify"
-        set cstate to player state as string
-        set ctrack to name of current track
-        set cartist to artist of current track
-        set calbum to album of current track
-        set cpos to (player position * 1000) as integer
-        set cdur to (duration of current track) as integer
-        return cstate & "\tSpotify\t" & ctrack & "\t" & cartist & "\t" & calbum & "\t" & cpos & "\t" & cdur
-      end tell
-    else if application "Music" is running then
-      tell application "Music"
-        set cstate to player state as string
-        set ctrack to name of current track
-        set cartist to artist of current track
-        set calbum to album of current track
-        set cpos to (player position * 1000) as integer
-        set cdur to ((duration of current track) * 1000) as integer
-        return cstate & "\tApple Music\t" & ctrack & "\t" & cartist & "\t" & calbum & "\t" & cpos & "\t" & cdur
-      end tell
+      try
+        tell application "Spotify"
+          set sState to (player state as string)
+          if sState is not "stopped" then
+            set sTrack to name of current track
+            set sArtist to artist of current track
+            set sAlbum to album of current track
+            set sPos to (player position * 1000) as integer
+            set sDur to (duration of current track) as integer
+            if sState is "playing" then
+              return sState & "\tSpotify\t" & sTrack & "\t" & sArtist & "\t" & sAlbum & "\t" & sPos & "\t" & sDur
+            else
+              set mediaOut to sState & "\tSpotify\t" & sTrack & "\t" & sArtist & "\t" & sAlbum & "\t" & sPos & "\t" & sDur
+            end if
+          end if
+        end tell
+      end try
+    end if
+
+    -- 2. Apple Music (Music.app)
+    if application "Music" is running then
+      try
+        tell application "Music"
+          set mState to (player state as string)
+          if mState is not "stopped" then
+            set mTrack to name of current track
+            set mArtist to artist of current track
+            set mAlbum to album of current track
+            set mPos to (player position * 1000) as integer
+            set mDur to ((duration of current track) * 1000) as integer
+            if mState is "playing" then
+              return mState & "\tApple Music\t" & mTrack & "\t" & mArtist & "\t" & mAlbum & "\t" & mPos & "\t" & mDur
+            else if mediaOut is "" then
+              set mediaOut to mState & "\tApple Music\t" & mTrack & "\t" & mArtist & "\t" & mAlbum & "\t" & mPos & "\t" & mDur
+            end if
+          end if
+        end tell
+      end try
+    end if
+
+    -- 3. Google Chrome
+    if mediaOut is "" and application "Google Chrome" is running then
+      try
+        tell application "Google Chrome"
+          repeat with w in windows
+            repeat with t in tabs of w
+              set tUrl to URL of t
+              if tUrl contains "music.youtube.com" or tUrl contains "open.spotify.com" or tUrl contains "youtube.com/watch" then
+                set tTitle to title of t
+                if tTitle does not start with "YouTube Music" and (tTitle contains " - " or tTitle contains " • ") then
+                  return "Playing\tYouTube Music\t" & tTitle & "\t\t\t0\t0"
+                end if
+              end if
+            end repeat
+          end repeat
+        end tell
+      end try
+    end if
+
+    -- 4. Safari
+    if mediaOut is "" and application "Safari" is running then
+      try
+        tell application "Safari"
+          repeat with w in windows
+            repeat with t in tabs of w
+              set tUrl to URL of t
+              if tUrl contains "music.youtube.com" or tUrl contains "open.spotify.com" or tUrl contains "youtube.com/watch" then
+                set tTitle to name of t
+                if tTitle does not start with "YouTube Music" and (tTitle contains " - " or tTitle contains " • ") then
+                  return "Playing\tYouTube Music\t" & tTitle & "\t\t\t0\t0"
+                end if
+              end if
+            end repeat
+          end repeat
+        end tell
+      end try
+    end if
+
+    -- 5. Microsoft Edge
+    if mediaOut is "" and application "Microsoft Edge" is running then
+      try
+        tell application "Microsoft Edge"
+          repeat with w in windows
+            repeat with t in tabs of w
+              set tUrl to URL of t
+              if tUrl contains "music.youtube.com" or tUrl contains "open.spotify.com" or tUrl contains "youtube.com/watch" then
+                set tTitle to title of t
+                if tTitle does not start with "YouTube Music" and (tTitle contains " - " or tTitle contains " • ") then
+                  return "Playing\tYouTube Music\t" & tTitle & "\t\t\t0\t0"
+                end if
+              end if
+            end repeat
+          end repeat
+        end tell
+      end try
+    end if
+
+    -- 6. Brave Browser
+    if mediaOut is "" and application "Brave Browser" is running then
+      try
+        tell application "Brave Browser"
+          repeat with w in windows
+            repeat with t in tabs of w
+              set tUrl to URL of t
+              if tUrl contains "music.youtube.com" or tUrl contains "open.spotify.com" or tUrl contains "youtube.com/watch" then
+                set tTitle to title of t
+                if tTitle does not start with "YouTube Music" and (tTitle contains " - " or tTitle contains " • ") then
+                  return "Playing\tYouTube Music\t" & tTitle & "\t\t\t0\t0"
+                end if
+              end if
+            end repeat
+          end repeat
+        end tell
+      end try
+    end if
+
+    -- 7. Arc Browser
+    if mediaOut is "" and application "Arc" is running then
+      try
+        tell application "Arc"
+          repeat with w in windows
+            repeat with t in tabs of w
+              set tUrl to URL of t
+              if tUrl contains "music.youtube.com" or tUrl contains "open.spotify.com" or tUrl contains "youtube.com/watch" then
+                set tTitle to title of t
+                if tTitle does not start with "YouTube Music" and (tTitle contains " - " or tTitle contains " • ") then
+                  return "Playing\tYouTube Music\t" & tTitle & "\t\t\t0\t0"
+                end if
+              end if
+            end repeat
+          end repeat
+        end tell
+      end try
+    end if
+
+    if mediaOut is not "" then
+      return mediaOut
     else
       return "inactive"
     end if
-  ' 2>/dev/null)
+  ')
 
   if [ -n "$OUT" ]; then
     printf "%s\n" "$OUT"
@@ -231,9 +352,23 @@ function parseDetectorLine(line, platform) {
   // Format: STATUS \t SOURCE \t TITLE \t ARTIST \t ALBUM \t POSITION \t DURATION
   const parts = trimmed.split("\t");
   if (parts.length >= 7) {
-    const [statusRaw, source, title, artist, album, posRaw, durRaw] = parts;
+    let [statusRaw, source, title, artist, album, posRaw, durRaw] = parts;
     if (!title || !title.trim()) {
       return { active: false };
+    }
+
+    // Clean up browser tab title format (e.g. "Song - Artist - YouTube Music")
+    if (source === "YouTube Music" && (!artist || !artist.trim())) {
+      let cleaned = title.replace(/\s*-\s*YouTube Music\s*$/i, "").trim();
+      if (cleaned.includes(" - ")) {
+        const segs = cleaned.split(" - ");
+        title = segs[0].trim();
+        artist = segs.slice(1).join(" - ").trim();
+      } else if (cleaned.includes(" • ")) {
+        const segs = cleaned.split(" • ");
+        title = segs[0].trim();
+        artist = segs.slice(1).join(" • ").trim();
+      }
     }
 
     let pos = Math.max(0, Math.round(Number(posRaw) || 0));
@@ -288,11 +423,24 @@ function startMediaDetector() {
     });
   } else if (process.platform === "darwin") {
     detectorProcess = spawn("bash", ["-c", buildMacScript(process.pid)], {
-      stdio: ["ignore", "pipe", "ignore"],
+      stdio: ["ignore", "pipe", "pipe"],
     });
   } else {
     return;
   }
+
+  detectorProcess.stderr?.setEncoding("utf8");
+  detectorProcess.stderr?.on("data", (chunk) => {
+    const msg = chunk.toString().trim();
+    if (msg) {
+      console.warn("[MediaDetector Warning]:", msg);
+      if (msg.includes("-1743") || msg.toLowerCase().includes("not authorized")) {
+        console.error(
+          "[MediaDetector Permission Error] macOS Automation permission required. Please grant permission in System Settings > Privacy & Security > Automation."
+        );
+      }
+    }
+  });
 
   detectorProcess.stdout?.setEncoding("utf8");
   detectorProcess.stdout?.on("data", (chunk) => {

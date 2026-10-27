@@ -1,4 +1,4 @@
-const { app, BrowserWindow, screen, Tray, Menu, ipcMain } = require("electron");
+const { app, BrowserWindow, screen, Tray, Menu, ipcMain, nativeImage } = require("electron");
 const path = require("node:path");
 const { ytMusicLyricsService } = require("./services/ytmusicService.cjs");
 const { startMediaDetector, getSystemMedia, stopMediaDetector } = require("./mediaDetector.cjs");
@@ -28,10 +28,14 @@ function registerIpcHandlers() {
   });
 
   ipcMain.handle("window-set-always-on-top", (_, flag) => {
+    const win = getSafeWindow();
+    if (!win) return;
+    const isPinned = Boolean(flag);
     if (process.platform === "darwin") {
-      getSafeWindow()?.setAlwaysOnTop(Boolean(flag), "screen-saver");
+      win.setAlwaysOnTop(isPinned, "floating", 1);
+      win.setVisibleOnAllWorkspaces(isPinned, { visibleOnFullScreen: true });
     } else {
-      getSafeWindow()?.setAlwaysOnTop(Boolean(flag));
+      win.setAlwaysOnTop(isPinned);
     }
   });
 
@@ -61,6 +65,8 @@ function createWindow(height) {
     x: 0,
     y: 0,
     transparent: true,
+    hasShadow: false,
+    roundedCorners: false,
     alwaysOnTop: false,
     frame: false, //if you have to log into spotify change to true and restart program
     autoHideMenuBar: true,
@@ -103,10 +109,19 @@ app.whenReady().then(() => {
   createWindow(height);
 
   app.on("activate", function () {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow(height);
+    if (!mainWindow || mainWindow.isDestroyed()) {
+      createWindow(height);
+    } else {
+      mainWindow.show();
+      mainWindow.focus();
+    }
   });
 
-  tray = new Tray(path.join(__dirname, "icon.png"));
+  let trayIcon = nativeImage.createFromPath(path.join(__dirname, "icon.png"));
+  if (process.platform === "darwin") {
+    trayIcon = trayIcon.resize({ width: 18, height: 18 });
+  }
+  tray = new Tray(trayIcon);
 
   const trayMenu = Menu.buildFromTemplate([
     {
@@ -114,6 +129,16 @@ app.whenReady().then(() => {
       enabled: false,
     },
     { type: "separator" },
+    {
+      label: "Show Overlay",
+      click: () => {
+        const win = getSafeWindow();
+        if (win) {
+          win.show();
+          win.focus();
+        }
+      },
+    },
     {
       label: "Vertical Layout",
       click: () => {
