@@ -1,12 +1,12 @@
 {
   "name": "spotify-lyrics-overlay",
   "private": true,
-  "version": "1.0.9",
+  "version": "1.0.11",
   "description": "Live-synced Spotify & YT Music lyrics overlay for desktop.",
   "author": "Lyrics Overlay Contributors",
   "type": "module",
   "main": "public/electron.cjs",
-  "license": "MIT",
+  "license": "GPL-3.0-or-later",
   "scripts": {
     "dev": "vite",
     "test": "eslint .",
@@ -16,6 +16,9 @@
     "electron": "electron .",
     "start": "concurrently -k \"vite\" \"wait-on tcp:127.0.0.1:5173 && electron .\"",
     "dist": "eslint . && vite build && electron-builder",
+    "dist:linux": "eslint . && vite build && electron-builder --linux",
+    "dist:mac": "eslint . && vite build && electron-builder --mac",
+    "dist:win": "eslint . && vite build && electron-builder --win",
     "version:current": "node scripts/version.cjs",
     "version:patch": "node scripts/version.cjs patch",
     "version:minor": "node scripts/version.cjs minor",
@@ -39,6 +42,7 @@
     "concurrently": "^9.1.2",
     "electron": "^36.2.1",
     "electron-builder": "^26.8.1",
+    "esbuild": "^0.28.2",
     "eslint": "^9.25.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
@@ -75,6 +79,22 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "public/icon.png",
+      "category": "Audio"
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "public/icon.png",
+      "category": "public.app-category.music"
     }
   }
 }

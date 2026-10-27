@@ -28,7 +28,11 @@ function registerIpcHandlers() {
   });
 
   ipcMain.handle("window-set-always-on-top", (_, flag) => {
-    getSafeWindow()?.setAlwaysOnTop(Boolean(flag), "screen-saver");
+    if (process.platform === "darwin") {
+      getSafeWindow()?.setAlwaysOnTop(Boolean(flag), "screen-saver");
+    } else {
+      getSafeWindow()?.setAlwaysOnTop(Boolean(flag));
+    }
   });
 
   ipcMain.handle("get-system-media", () => {

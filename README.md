@@ -3,16 +3,16 @@
 </p>
 
 <h1 align="center">Universal Lyrics Overlay</h1>
-<p align="center"><strong>Real-time, time-synced desktop lyrics overlay for Spotify, YouTube Music, and Windows Media Players.</strong></p>
+<p align="center"><strong>Real-time, time-synced desktop lyrics overlay for Spotify, YouTube Music, and Desktop Media Players.</strong></p>
 
-> **Note:** Originally forked from [Nicolas-Arias3142/Spotify_Lyrics_Overlay](https://github.com/Nicolas-Arias3142/Spotify_Lyrics_Overlay), **Universal Lyrics Overlay** has been completely re-architected with native Windows OS media detection, time-synced LRCLIB + YouTube Music lyrics, a Spotify Core UI, and zero API setup required.
+> **Note:** Originally forked from [Nicolas-Arias3142/Spotify_Lyrics_Overlay](https://github.com/Nicolas-Arias3142/Spotify_Lyrics_Overlay), **Universal Lyrics Overlay** has been completely re-architected with cross-platform native media detection (Linux MPRIS, macOS AppleScript, and Windows GSMTC), time-synced LRCLIB + YouTube Music lyrics, a Spotify Core UI, and zero API setup required.
 
 <p align="center">
   <img src="https://img.shields.io/badge/version-1.0.9-1DB954?style=flat-square" alt="Version" />
-  <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License" />
+  <img src="https://img.shields.io/badge/license-GPL--3.0-blue?style=flat-square" alt="License" />
   <img src="https://img.shields.io/badge/electron-36-47848F?style=flat-square&logo=electron" alt="Electron 36" />
   <img src="https://img.shields.io/badge/react-19-61DAFB?style=flat-square&logo=react" alt="React 19" />
-  <img src="https://img.shields.io/badge/platform-Windows-0078D6?style=flat-square&logo=windows" alt="Windows" />
+  <img src="https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-0078D6?style=flat-square" alt="Cross-Platform" />
 </p>
 
 <p align="center">
@@ -29,7 +29,10 @@
 ## Features
 
 - **Universal Auto-Detect Mode (Zero Config / No API Keys Needed)**
-  - Automatically detects the active song, artist, playback state, and timeline position from **Spotify**, **YouTube Music** (Chrome, Edge, Brave, Firefox, Desktop App), **Apple Music**, **VLC**, and any Windows media player via Windows `GlobalSystemMediaTransportControlsSessionManager` (GSMTC).
+  - Automatically detects the active song, artist, playback state, and timeline position across:
+    - **Linux**: MPRIS D-Bus (`org.mpris.MediaPlayer2`) with support for `playerctl` and systemd `busctl` (Spotify, VLC, Chrome, Firefox, Amberol, Cider, etc.).
+    - **macOS**: Native AppleScript control for **Spotify** and **Apple Music**.
+    - **Windows**: Windows Runtime `GlobalSystemMediaTransportControlsSessionManager` (GSMTC) for Spotify, Edge, Chrome, Apple Music, and desktop media players.
   - Fetches millisecond-synced lyrics from **LRCLIB** with automatic fallback to **YouTube Music** lyrics and smart proportional pacing.
 - **Manual Search Mode**
   - Search for any song or artist on demand directly from **YouTube Music** without needing an active media player.
@@ -49,7 +52,7 @@
 ## Getting Started
 
 ### Prerequisites
-- **Windows 10 / 11** (64-bit)
+- **Linux** (with `playerctl` or systemd `busctl`), **macOS 11+**, or **Windows 10 / 11**
 - **Node.js 20+**
 - **pnpm** (`corepack enable pnpm`)
 
@@ -76,15 +79,26 @@
 
 ## Building Installer & Executable
 
-Compile the overlay into a standalone Windows NSIS installer (`Lyrics Overlay Setup <version>.exe`) and portable unpacked executable:
+Compile the overlay into a standalone distributable or executable:
 
 ```bash
+# Build for current host platform
 pnpm run dist
+
+# Build specifically for Linux (AppImage & .deb)
+pnpm run dist:linux
+
+# Build specifically for macOS (DMG & .zip)
+pnpm run dist:mac
+
+# Build specifically for Windows (NSIS .exe installer)
+pnpm run dist:win
 ```
 
 Build outputs are generated in the `dist-electron/` directory:
-- `dist-electron/Lyrics Overlay Setup <version>.exe` — Standalone Windows installer
-- `dist-electron/win-unpacked/Lyrics Overlay.exe` — Portable unpacked executable
+- **Linux**: `dist-electron/Lyrics Overlay-<version>.AppImage` and `.deb`
+- **macOS**: `dist-electron/Lyrics Overlay-<version>.dmg` and `.zip`
+- **Windows**: `dist-electron/Lyrics Overlay Setup <version>.exe`
 
 ---
 
@@ -117,4 +131,4 @@ pnpm run release:patch
 
 ## License
 
-Licensed under the [MIT License](./LICENSE).
+Licensed under the [GNU General Public License v3.0 (GPL-3.0)](./LICENSE).
